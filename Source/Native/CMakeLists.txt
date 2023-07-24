@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(nanosockets C)
 
 set(NANOSOCKETS_STATIC "0" CACHE BOOL "Create a static library")
-set(NANOSOCKETS_SHARED "0" CACHE BOOL "Create a shared library")
+set(NANOSOCKETS_SHARED "1" CACHE BOOL "Create a shared library")
 
 if (MSYS OR MINGW)
     set(CMAKE_C_FLAGS "-static") 
