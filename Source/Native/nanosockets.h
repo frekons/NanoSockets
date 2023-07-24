@@ -105,7 +105,7 @@ extern "C" {
 
 	NANOSOCKETS_API NanoStatus nanosockets_set_dontfragment(NanoSocket);
 
-	NANOSOCKETS_API int nanosockets_poll(NanoSocket, long);
+	NANOSOCKETS_API int nanosockets_poll(NanoSocket, long, unsigned char);
 
 	NANOSOCKETS_API int nanosockets_send(NanoSocket, const NanoAddress*, const uint8_t*, int);
 
@@ -328,7 +328,7 @@ extern "C" {
 		return NANOSOCKETS_STATUS_OK;
 	}
 
-	int nanosockets_poll(NanoSocket socket, long timeout) {
+	int nanosockets_poll(NanoSocket socket, long timeout, unsigned char type) {
 		fd_set set = { 0 };
 		struct timeval time = { 0 };
 
@@ -339,7 +339,7 @@ extern "C" {
 		time.tv_usec = (timeout % 1000) * 1000;
 
 		#pragma warning(suppress: 4244)
-		return select(socket + 1, &set, NULL, NULL, &time);
+		return select(socket + 1, type == 0 ? &set : NULL, type == 1 ? &set : NULL, type == 2 ? &set : NULL, &time);
 	}
 
 	int nanosockets_send(NanoSocket socket, const NanoAddress* address, const uint8_t* buffer, int bufferLength) {
