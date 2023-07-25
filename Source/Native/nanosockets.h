@@ -89,7 +89,7 @@ extern "C" {
 
 	NANOSOCKETS_API void nanosockets_deinitialize(void);
 
-	NANOSOCKETS_API NanoSocket nanosockets_create(int, int);
+	NANOSOCKETS_API NanoSocket nanosockets_create(int, int, int);
 
 	NANOSOCKETS_API void nanosockets_destroy(NanoSocket*);
 
