@@ -258,7 +258,7 @@ extern "C" {
 
 		socketAddress.sin_family = AF_INET;
 
-		socketAddress.sin_addr = address->ipv4.ip;
+		socketAddress.sin_addr.s_addr = address->ipv4.ip.s_addr;
 		socketAddress.sin_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
 
 		return bind(socket, (struct sockaddr*)&socketAddress, sizeof(socketAddress));
@@ -344,7 +344,7 @@ extern "C" {
 
 		if (address != NULL) {
 			socketAddress.sin_family = AF_INET;
-			socketAddress.sin_addr = address->ipv4.ip;
+			socketAddress.sin_addr.s_addr = address->ipv4.ip.s_addr;
 			socketAddress.sin_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
 		}
 
