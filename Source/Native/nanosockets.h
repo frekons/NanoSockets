@@ -305,21 +305,24 @@ extern "C" {
 	}
 
 	NanoStatus nanosockets_set_dontfragment(NanoSocket socket) {
-		#ifdef IP_DONTFRAG
-			int dontFragment = 1;
 
-			if (setsockopt(socket, IPPROTO_IP, IP_DONTFRAG, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
-				return NANOSOCKETS_STATUS_ERROR;
-		#elif defined IP_DONTFRAGMENT
-			DWORD dontFragment = 1;
+		return NANOSOCKETS_STATUS_ERROR;
 
-			if (setsockopt(socket, IPPROTO_IP, IP_DONTFRAGMENT, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
-				return NANOSOCKETS_STATUS_ERROR;
-		#else
-			#error "Don't fragment socket option is not implemented for this platform"
-		#endif
+		// #ifdef IP_DONTFRAG
+		// 	int dontFragment = 1;
 
-		return NANOSOCKETS_STATUS_OK;
+		// 	if (setsockopt(socket, IPPROTO_IP, IP_DONTFRAG, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
+		// 		return NANOSOCKETS_STATUS_ERROR;
+		// #elif defined IP_DONTFRAGMENT
+		// 	DWORD dontFragment = 1;
+
+		// 	if (setsockopt(socket, IPPROTO_IP, IP_DONTFRAGMENT, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
+		// 		return NANOSOCKETS_STATUS_ERROR;
+		// #else
+		// 	#error "Don't fragment socket option is not implemented for this platform"
+		// #endif
+
+		// return NANOSOCKETS_STATUS_OK;
 	}
 
 	int nanosockets_poll(NanoSocket socket, long timeout, unsigned char type) {
