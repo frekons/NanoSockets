@@ -202,20 +202,20 @@ extern "C" {
 		#endif
 	}
 
-	NanoSocket nanosockets_create(int sendBufferSize, int receiveBufferSize) {
+	NanoSocket nanosockets_create(int domain, int sendBufferSize, int receiveBufferSize) {
 		int socketType = SOCK_DGRAM;
 
 		#ifdef SOCK_CLOEXEC
 			socketType |= SOCK_CLOEXEC;
 		#endif
 
-		NanoSocket socketHandle = socket(PF_INET6, socketType, 0);
+		NanoSocket socketHandle = socket(domain, socketType, 0);
 
 		if (socketHandle > -1) {
-			int onlyIPv6 = 0;
+			// int onlyIPv6 = 0;
 
-			if (setsockopt(socketHandle, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&onlyIPv6, sizeof(onlyIPv6)) != 0)
-				goto destroy;
+			// if (setsockopt(socketHandle, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&onlyIPv6, sizeof(onlyIPv6)) != 0)
+			// 	goto destroy;
 
 			if (setsockopt(socketHandle, SOL_SOCKET, SO_SNDBUF, (const char*)&sendBufferSize, sizeof(sendBufferSize)) != 0)
 				goto destroy;
@@ -250,16 +250,16 @@ extern "C" {
 	}
 
 	int nanosockets_bind(NanoSocket socket, const NanoAddress* address) {
-		struct sockaddr_in6 socketAddress = { 0 };
+		struct sockaddr_in socketAddress = { 0 };
 
-		socketAddress.sin6_family = AF_INET6;
+		socketAddress.sin_family = AF_INET;
 
 		if (address == NULL) {
-			socketAddress.sin6_addr = in6addr_any;
-			socketAddress.sin6_port = 0;
+			socketAddress.sin_addr = INADDR_ANY;
+			socketAddress.sin_port = 0;
 		} else {
-			socketAddress.sin6_addr = address->ipv6;
-			socketAddress.sin6_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
+			socketAddress.sin_addr = address->ipv4.ip;
+			socketAddress.sin_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
 		}
 
 		return bind(socket, (struct sockaddr*)&socketAddress, sizeof(socketAddress));
@@ -309,17 +309,12 @@ extern "C" {
 		#ifdef IP_DONTFRAG
 			int dontFragment = 1;
 
-			if (setsockopt(socket, IPPROTO_IPV6, IP_DONTFRAG, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
+			if (setsockopt(socket, IPPROTO_IP, IP_DONTFRAG, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
 				return NANOSOCKETS_STATUS_ERROR;
 		#elif defined IP_DONTFRAGMENT
 			DWORD dontFragment = 1;
 
-			if (setsockopt(socket, IPPROTO_IPV6, IP_DONTFRAGMENT, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
-				return NANOSOCKETS_STATUS_ERROR;
-		#elif defined IPV6_DONTFRAG
-			int dontFragment = 1;
-
-			if (setsockopt(socket, IPPROTO_IPV6, IPV6_DONTFRAG, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
+			if (setsockopt(socket, IPPROTO_IP, IP_DONTFRAGMENT, (const char*)&dontFragment, sizeof(dontFragment)) != 0)
 				return NANOSOCKETS_STATUS_ERROR;
 		#else
 			#error "Don't fragment socket option is not implemented for this platform"
@@ -343,12 +338,12 @@ extern "C" {
 	}
 
 	int nanosockets_send(NanoSocket socket, const NanoAddress* address, const uint8_t* buffer, int bufferLength) {
-		struct sockaddr_in6 socketAddress = { 0 };
+		struct sockaddr_in socketAddress = { 0 };
 
 		if (address != NULL) {
-			socketAddress.sin6_family = AF_INET6;
-			socketAddress.sin6_addr = address->ipv6;
-			socketAddress.sin6_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
+			socketAddress.sin_family = AF_INET;
+			socketAddress.sin_addr = address->ipv4.ip;
+			socketAddress.sin_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
 		}
 
 		return sendto(socket, (const char*)buffer, bufferLength, 0, (address != NULL ? (struct sockaddr*)&socketAddress : NULL), sizeof(socketAddress));

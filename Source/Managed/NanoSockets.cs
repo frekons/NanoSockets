@@ -22,12 +22,10 @@
  */
 
 using System;
-using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using System.Web.UI.WebControls;
 
 namespace NanoSockets
 {
@@ -62,9 +60,52 @@ namespace NanoSockets
         {
             set
             {
-                UDP.SetNonBlocking(this, shouldBlock: value);
+                if (UDP.SetNonBlocking(this, shouldBlock: value) == Status.Error)
+                    throw new SocketException();
             }
         }
+
+        public readonly bool DontFragment
+        {
+            get
+            {
+                int result = -1, length = sizeof(int);
+
+                if (UDP.GetOption(this, (int)System.Net.Sockets.SocketOptionLevel.IP, (int)System.Net.Sockets.SocketOptionName.DontFragment, ref result, ref length) == Status.Error)
+                    throw new SocketException();
+
+                //Debug.Log($"DontFragment: {result}");
+
+                return result != 0;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    UDP.SetDontFragment(this);
+                }
+                else
+                {
+                    throw new NotSupportedException("DontFragment = false is not supported!");
+                }
+            }
+        }
+
+        //internal void UpdateStatusAfterSocketError(SocketException socketException)
+        //{
+        //    var errorCode = (SocketError)socketException.NativeErrorCode;
+
+        //    //if (Socket.s_LoggingEnabled)
+        //    //{
+        //    //    Logging.PrintError(Logging.Sockets, this, "UpdateStatusAfterSocketError", errorCode.ToString());
+        //    //}
+
+        //    //if (this.IsCreated && (this.m_Handle.IsInvalid || (errorCode != SocketError.WouldBlock && errorCode != SocketError.IOPending && errorCode != SocketError.NoBufferSpaceAvailable && errorCode != SocketError.TimedOut)))
+        //    //{
+        //    //    this.SetToDisconnected();
+        //    //}
+        //}
 
         public readonly bool Poll(long timeout, PollType type)
         {
@@ -76,11 +117,17 @@ namespace NanoSockets
             {
                 SocketException ex = new SocketException();
                 //this.UpdateStatusAfterSocketError(ex);
+
                 //if (Socket.s_LoggingEnabled)
                 //{
                 //    Logging.Exception(Logging.Sockets, this, "Poll", ex);
                 //}
-                throw ex;
+
+                if (ex.ErrorCode != (int)SocketError.MessageSize)
+                {
+                    throw ex;
+                }
+                else return false;
             }
 
             return true;
@@ -160,6 +207,8 @@ namespace NanoSockets
 
             var status = NanoSockets.UDP.GetIP(ref this, ip, 64);
 
+            //Debug.Log($"[NanoSockets] GetIpAndPort, UDP.GetIP status: {status}, this.address0: {this.address0}, this.address1: {this.address1}, this.ffff: {this.ffff}, this.zeros: {this.zeros}, this.ipv4: {this.ipv4}, this.port: {this.port}");
+
             if (status != Status.OK)
                 return string.Empty;
 
@@ -203,7 +252,7 @@ namespace NanoSockets
         public static extern void Deinitialize();
 
         [DllImport(nativeLibrary, EntryPoint = "nanosockets_create", CallingConvention = CallingConvention.Cdecl)]
-        public static extern Socket Create(int sendBufferSize, int receiveBufferSize);
+        public static extern Socket Create(int domain, int sendBufferSize, int receiveBufferSize);
 
         [DllImport(nativeLibrary, EntryPoint = "nanosockets_destroy", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Destroy(ref Socket socket);
