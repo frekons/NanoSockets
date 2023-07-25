@@ -250,17 +250,16 @@ extern "C" {
 	}
 
 	int nanosockets_bind(NanoSocket socket, const NanoAddress* address) {
+
+		if (address == NULL)
+			return -1;
+
 		struct sockaddr_in socketAddress = { 0 };
 
 		socketAddress.sin_family = AF_INET;
 
-		if (address == NULL) {
-			socketAddress.sin_addr = INADDR_ANY;
-			socketAddress.sin_port = 0;
-		} else {
-			socketAddress.sin_addr = address->ipv4.ip;
-			socketAddress.sin_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
-		}
+		socketAddress.sin_addr = address->ipv4.ip;
+		socketAddress.sin_port = NANOSOCKETS_HOST_TO_NET_16(address->port);
 
 		return bind(socket, (struct sockaddr*)&socketAddress, sizeof(socketAddress));
 	}
