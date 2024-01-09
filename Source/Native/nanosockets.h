@@ -50,12 +50,14 @@
 
 #ifdef NANOSOCKETS_WINDOWS
 	#include <ws2tcpip.h>
+	#include <Windows.h>
 #else
 	#ifdef NANOSOCKETS_MAC
 		#define __APPLE_USE_RFC_3542
 	#endif
 
 	#include <netinet/in.h>
+	#include <errno.h>
 #endif
 
 #define NANOSOCKETS_HOSTNAME_SIZE 1025
@@ -84,6 +86,8 @@ extern "C" {
 		};
 		uint16_t port;
 	} NanoAddress;
+
+	NANOSOCKETS_API int nanosockets_get_last_error(void);
 
 	NANOSOCKETS_API NanoStatus nanosockets_initialize(void);
 
@@ -177,6 +181,14 @@ extern "C" {
 			address->ipv6 = socketAddress->sin6_addr;
 			address->port = NANOSOCKETS_NET_TO_HOST_16(socketAddress->sin6_port);
 		}
+	}
+
+	int nanosockets_get_last_error(void) {
+		#ifdef NANOSOCKETS_WINDOWS
+		return GetLastError();
+		#endif
+
+		return errno;
 	}
 
 	NanoStatus nanosockets_initialize(void) {

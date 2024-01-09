@@ -245,6 +245,9 @@ namespace NanoSockets
 
         public const int hostNameSize = 1025;
 
+        [DllImport(nativeLibrary, EntryPoint = "nanosockets_get_last_error", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetLastError();
+
         [DllImport(nativeLibrary, EntryPoint = "nanosockets_initialize", CallingConvention = CallingConvention.Cdecl)]
         public static extern Status Initialize();
 
